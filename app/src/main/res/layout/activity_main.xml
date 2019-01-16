@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <Button
+        android:layout_width="wrap_content"
+        android:text="开始动画"
+        android:onClick="start"
+        android:layout_height="wrap_content" />
+
+    <com.machao.xiaoaiview.XiaoAiView
+        android:id="@+id/xiaoaiview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:backgroundColor="@color/colorPrimary"
+        app:during="3000"
+        app:icon="@mipmap/ic_xiaoai_main"
+        app:margin="20dp"
+        app:padding="10dp"
+        app:text="测试文本"
+        app:textSize="15sp"/>
+
+</FrameLayout>

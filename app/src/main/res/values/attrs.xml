@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="XiaoAiView">
+        <attr name="backgroundColor" format="color" />
+        <attr name="icon" format="reference" />
+        <attr name="textSize" format="dimension" />
+        <attr name="text" format="string" />
+        <attr name="margin" format="dimension" />
+        <attr name="padding" format="dimension" />
+        <attr name="during" format="integer" />
+    </declare-styleable>
+</resources>
