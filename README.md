@@ -5,6 +5,16 @@
 USE
 ====
 
+```java
+
+((XiaoAiView) findViewById(R.id.xiaoaiview)).setOnClickListener(new XiaoAiView.onClickListener() {
+            @Override
+            public void onClick() {
+                Toast.makeText(MainActivity.this,"点击事件",Toast.LENGTH_SHORT).show();
+            }
+        });
+
+```
 
 ```xml
  <com.machao.xiaoaiview.XiaoAiView

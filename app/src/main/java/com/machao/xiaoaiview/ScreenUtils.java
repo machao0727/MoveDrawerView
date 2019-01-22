@@ -23,6 +23,7 @@ public class ScreenUtils {
     private static int virtualH;
     private static float screenDensity;
     private static int statusBarHeight = 0;
+    private static int DrawHeight;//绘制区域，也就是真实区域
 
     public static int getVirtualH() {
         return virtualH;
@@ -37,6 +38,11 @@ public class ScreenUtils {
         screenDensity = outMetrics.density;
         getStatusBarHeight(mActivity);
         virtualH = getNavigationBarHeight(mActivity);
+        DrawHeight = screenH - statusBarHeight - virtualH ;//屏幕高度 - 状态栏高度 - 虚拟按键高度
+    }
+
+    public static int getDrawHeight() {
+        return DrawHeight;
     }
 
     private static void getStatusBarHeight(Context context) {

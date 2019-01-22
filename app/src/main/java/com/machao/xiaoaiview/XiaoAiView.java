@@ -15,6 +15,7 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.LinearInterpolator;
 
@@ -59,6 +60,7 @@ public class XiaoAiView extends View {
     private Matrix matrix = null;
     private boolean transComplete = false;//移动完成
     private int during = 1000;
+    private int margin;
 
     public XiaoAiView(Context context) {
         super(context);
@@ -83,7 +85,7 @@ public class XiaoAiView extends View {
         int icon = a.getResourceId(R.styleable.XiaoAiView_icon, -1);
         int textSize = a.getDimensionPixelSize(R.styleable.XiaoAiView_textSize, 40);
         text = a.getString(R.styleable.XiaoAiView_text);
-        int margin = a.getDimensionPixelOffset(R.styleable.XiaoAiView_margin, 100);
+        margin = a.getDimensionPixelOffset(R.styleable.XiaoAiView_margin, 100);
         paddingSize = a.getDimensionPixelSize(R.styleable.XiaoAiView_padding, 15);
         during = a.getInteger(R.styleable.XiaoAiView_during, 1000);
         a.recycle();
@@ -113,9 +115,10 @@ public class XiaoAiView extends View {
         //=============默认设置==========//
         startSizeW = (int) (ScreenW * 0.8);
         startX = (float) ((ScreenW * 0.2) / 2);
-        startY = (float) screenH /2;
+        startY = (float) screenH / 2;
         endX = ScreenW - margin - sizeH;
-        endY = screenH - ScreenUtils.getVirtualH() * 3 - margin;
+        endY = ScreenUtils.getDrawHeight() - margin - sizeH;//屏幕高度 - 虚拟按键高度 - 边界 - 控件高度 - 状态栏高度
+        //控件X,Y起始于状态栏之下，所以需要减去状态栏高度
         currentX = startX;
         currentY = startY;
         currentW = startSizeW;
@@ -126,8 +129,81 @@ public class XiaoAiView extends View {
         float top = fontMetrics.top;//为基线到字体上边框的距离,即上图中的top
         float bottom = fontMetrics.bottom;//为基线到字体下边框的距离,即上图中的bottom
         baseLineY = (int) (sizeH / 2 - top / 2 - bottom / 2);
+        System.out.println("总高度" + screenH + "：虚拟按键高度" + ScreenUtils.getVirtualH() + "：margin" + margin + "：控件高度" + sizeH + "：endy" + endY);
     }
 
+    private float downX;
+    private float downY;
+    private boolean isTouch = false;
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        if (!transComplete) {
+            if (listener!=null){
+                listener.onClick();
+            }
+            return super.onTouchEvent(event);
+        } else {
+            switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    isTouch = false;
+                    currentX = getX();
+                    currentY = getY();
+                    downX = event.getRawX();
+                    downY = event.getRawY();
+                    return true;
+                case MotionEvent.ACTION_MOVE:
+                    float offsetX = event.getRawX() - downX;
+                    float offsetY = event.getRawY() - downY;
+                    if (offsetX != 0 || offsetY != 0) {
+                        isTouch = true;
+                    }
+                    moveView(currentX + offsetX, currentY + offsetY);
+                    break;
+                case MotionEvent.ACTION_UP:
+                    currentX = getX();
+                    currentY = getY();
+                    startTranslateAnima();
+                    if (isTouch) {
+                        return true;
+                    } else {//点击事件
+                        if (listener!=null){
+                            listener.onClick();
+                        }
+                        return super.onTouchEvent(event);
+                    }
+
+            }
+            return super.onTouchEvent(event);
+        }
+    }
+
+    /**
+     * 边框附着动画
+     */
+    private void startTranslateAnima() {
+        if (currentX > 0 && currentX < ScreenW - endSizeW) {//需要附着边框
+            ValueAnimator animator = ValueAnimator.ofFloat(currentX, currentX < ScreenW / 2 ? 0 : ScreenW - endSizeW);
+            animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    setX((Float) animation.getAnimatedValue());
+                    setY(currentY);
+                }
+            });
+            animator.setDuration(500);
+            animator.start();
+        }
+    }
+
+    private void moveView(float endX, float endy) {
+        if (endX < 0) endX = 0;
+        if (endX + endSizeW > ScreenW) endX = ScreenW - endSizeW;
+        if (endy < 0) endy = 0;
+        if (endy > endY + margin) endy = endY + margin;
+        setX(endX);
+        setY(endy);
+    }
 
     /**
      * 开始动画
@@ -218,7 +294,7 @@ public class XiaoAiView extends View {
 
             @Override
             public void onAnimationEnd(Animator animator) {
-//                transComplete = true;
+                transComplete = true;
 //                animatorRotate.start();
             }
 
@@ -232,5 +308,18 @@ public class XiaoAiView extends View {
 
             }
         });
+    }
+
+    /**
+     * 点击事件
+     */
+    public interface onClickListener{
+        void onClick();
+    }
+
+    private onClickListener listener;
+
+    public void setOnClickListener(onClickListener listener){
+        this.listener = listener;
     }
 }
