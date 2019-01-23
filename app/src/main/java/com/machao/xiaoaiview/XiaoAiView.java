@@ -61,6 +61,7 @@ public class XiaoAiView extends View {
     private boolean transComplete = false;//移动完成
     private int during = 1000;
     private int margin;
+    private ValueAnimator animatorRotate;
 
     public XiaoAiView(Context context) {
         super(context);
@@ -129,7 +130,6 @@ public class XiaoAiView extends View {
         float top = fontMetrics.top;//为基线到字体上边框的距离,即上图中的top
         float bottom = fontMetrics.bottom;//为基线到字体下边框的距离,即上图中的bottom
         baseLineY = (int) (sizeH / 2 - top / 2 - bottom / 2);
-        System.out.println("总高度" + screenH + "：虚拟按键高度" + ScreenUtils.getVirtualH() + "：margin" + margin + "：控件高度" + sizeH + "：endy" + endY);
     }
 
     private float downX;
@@ -139,7 +139,7 @@ public class XiaoAiView extends View {
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         if (!transComplete) {
-            if (listener!=null){
+            if (listener != null) {
                 listener.onClick();
             }
             return super.onTouchEvent(event);
@@ -167,7 +167,7 @@ public class XiaoAiView extends View {
                     if (isTouch) {
                         return true;
                     } else {//点击事件
-                        if (listener!=null){
+                        if (listener != null) {
                             listener.onClick();
                         }
                         return super.onTouchEvent(event);
@@ -233,7 +233,7 @@ public class XiaoAiView extends View {
             canvas.drawBitmap(bitmapDisplay, currentW - sizeH + (sizeH - bitmapW) / 2, (sizeH - bitmapH) / 2, zonePaint);
         } else {
             canvas.drawCircle(currentW - (sizeH / 2), sizeH / 2, radius, zonePaint);
-            canvas.drawBitmap(bitmapDisplay, currentW - sizeH + (sizeH - bitmapW) / 2, (sizeH - bitmapH) / 2, zonePaint);
+            canvas.drawBitmap(bitmapDisplay, matrix, zonePaint);
         }
     }
 
@@ -248,7 +248,7 @@ public class XiaoAiView extends View {
         ValueAnimator animatorX = ValueAnimator.ofFloat(startX, endX);
         ValueAnimator animatorY = ValueAnimator.ofFloat(startY, endY);
         ValueAnimator animatorW = ValueAnimator.ofFloat(startSizeW, endSizeW);
-        ValueAnimator animatorRotate = ValueAnimator.ofFloat(0f, 360f);
+        animatorRotate = ValueAnimator.ofFloat(0f, 360f);
         animatorRotate.setDuration(5000);
         animatorRotate.setInterpolator(new LinearInterpolator());//线性渐变
         animatorRotate.setRepeatCount(ObjectAnimator.INFINITE);//无限循环
@@ -277,8 +277,9 @@ public class XiaoAiView extends View {
         animatorRotate.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
             public void onAnimationUpdate(ValueAnimator valueAnimator) {
-                matrix.setRotate((Float) valueAnimator.getAnimatedValue());
-                bitmapDisplay = Bitmap.createBitmap(bitmap, 0, 0, bitmapW, bitmapH, matrix, true);
+                matrix.setRotate((Float) valueAnimator.getAnimatedValue(), bitmapW / 2, bitmapH / 2);
+                matrix.postTranslate(currentW/2-bitmapW/2,currentW/2-bitmapH/2);
+                bitmapDisplay = Bitmap.createBitmap(bitmap, 0, 0, bitmapW, bitmapH);
                 invalidate();
             }
         });
@@ -295,7 +296,7 @@ public class XiaoAiView extends View {
             @Override
             public void onAnimationEnd(Animator animator) {
                 transComplete = true;
-//                animatorRotate.start();
+                animatorRotate.start();
             }
 
             @Override
@@ -313,13 +314,13 @@ public class XiaoAiView extends View {
     /**
      * 点击事件
      */
-    public interface onClickListener{
+    public interface onClickListener {
         void onClick();
     }
 
     private onClickListener listener;
 
-    public void setOnClickListener(onClickListener listener){
+    public void setOnClickListener(onClickListener listener) {
         this.listener = listener;
     }
 }
